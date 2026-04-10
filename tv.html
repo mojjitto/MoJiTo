@@ -2,25 +2,29 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>SŌF TV</title>
+<title>SŌF MOJITO TV</title>
 <style>
 *{margin:0;padding:0}
 html,body{width:100%;height:100%;background:#000;color:#fff;font-family:Arial}
 #video{width:100%;height:100%;position:fixed;top:0;left:0;display:none;background:#000}
-#menu{padding:30px;height:100%;display:flex;flex-direction:column}
-h1{color:#ff0040;font-size:48px;margin-bottom:30px;text-shadow:0 0 10px rgba(255,0,64,0.5)}
-#in.focused{border-color:#ff0040;box-shadow:0 0 15px rgba(255,0,64,0.3)}
-#msg{font-size:24px;padding:20px;color:#ff0040;min-height:30px}
-.error{color:#ff0040}
-.info{color:#ff0040}
+#menu{padding:50px 10px 0 10px;height:100%;display:flex;flex-direction:column;align-items:center}
+.logo{font-size:72px;font-weight:bold;text-align:center;line-height:1}
+.logo .sof{color:#8b0000;text-shadow:0 0 10px #ff0000,0 0 20px #8b0000}
+.logo .mojito{color:#dc143c;text-shadow:0 0 10px #ff0000,0 0 20px #dc143c}
+.logo .tv{color:#ff0000;font-size:32px;vertical-align:top;margin-left:5px;text-shadow:0 0 10px #ff0000}
+#in{font-size:32px;padding:20px;background:transparent;border:none;color:#666;text-align:center;margin-bottom:20px;outline:none;text-shadow:0 0 5px rgba(255,0,0,0.3)}
+#in.focused{color:#aaa;text-shadow:0 0 10px rgba(255,0,0,0.5)}
+#msg{font-size:20px;padding:15px;color:#8b0000;min-height:30px}
+.error{color:#ff0000}
+.info{color:#dc143c}
 .hidden{display:none}
-#qm{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.95);z-index:200;flex-direction:column;justify-content:center;align-items:center}
+#qm{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#000;z-index:200;flex-direction:column;justify-content:center;align-items:center}
 #qm.show{display:flex}
-#qm h2{color:#ff0040;font-size:40px;margin-bottom:40px;text-shadow:0 0 10px rgba(255,0,64,0.5)}
-#qm p{color:#666;font-size:28px;padding:15px}
-select{font-size:20px;width:100%;padding:15px;background:#0a0a0a;color:#ff0040;border:1px solid #330011;margin-top:20px;height:300px}
-option{background:#0a0a0a;color:#aaa;padding:10px}
-option:checked,option:focus,option:selected{background:#330011;color:#ff0040}
+#qm h2{color:#ff0000;font-size:48px;margin-bottom:40px;text-shadow:0 0 20px #ff0000,0 0 40px #8b0000}
+#qm p{color:#8b0000;font-size:24px;padding:15px}
+select{font-size:20px;width:100%;padding:15px;background:#1a1a1a;color:#fff;border:1px solid #333;border-radius:8px;margin-top:20px;height:300px}
+option{background:#1a1a1a;color:#aaa;padding:12px}
+option:checked,option:focus,option:selected{background:#0066cc;color:#fff}
 </style>
 </head>
 <body>
@@ -36,9 +40,9 @@ option:checked,option:focus,option:selected{background:#330011;color:#ff0040}
 </div>
 
 <div id="menu">
-<h1>SŌF TV</h1>
+<div class="logo"><span class="sof">SōF</span><span class="mojito"> MoJiTo</span><span class="tv"> TV</span></div>
 <div id="in">Escribe el canal...</div>
-<button id="more" style="display:none;margin-top:10px;padding:10px 20px;background:#ff0040;border:none;color:#fff;cursor:pointer;">MAS STREAMS (+20)</button>
+<button id="more" style="display:none;margin-top:10px;padding:10px 20px;background:#8b0000;border:none;color:#fff;cursor:pointer;">MAS STREAMS (+20)</button>
 <div id="msg" class="info">↑↓ navegar | ENTER reproducir</div>
 <select id="results" size="10" class="hidden"></select>
 </div>
@@ -137,6 +141,7 @@ function loadPage(p){
             try{
                 var d=JSON.parse(x.responseText);
                 showStreams(d.streams||[],d.hasMore,p===1);
+                if(p>1){idx=streams.length-d.streams.length;elSel.selectedIndex=idx;elSel.focus();}
             }catch(e){log('Error');}
         }
     };
@@ -173,10 +178,11 @@ document.addEventListener('keydown',function(e){
     if(k==='ArrowDown'){
         e.preventDefault();
         var lim=mode==='search'&&txt.length>0?streams.length-1:favorites.length-1;
-        if(idx<lim){idx++;elSel.value=idx;elSel.selectedIndex=idx;log((mode==='search'?streams[idx]:favorites[idx]).title.substring(0,40));}
+        if(idx<lim){idx++;elSel.value=idx;elSel.selectedIndex=idx;elSel.focus();log((mode==='search'?streams[idx]:favorites[idx]).title.substring(0,40));}
+        else if(mode==='search'&&txt.length>0&&hasMore){page++;loadPage(page);log('Cargando más...');}
     }else if(k==='ArrowUp'){
         e.preventDefault();
-        if(idx>0){idx--;elSel.value=idx;elSel.selectedIndex=idx;log((mode==='search'?streams[idx]:favorites[idx]).title.substring(0,40));}
+        if(idx>0){idx--;elSel.value=idx;elSel.selectedIndex=idx;elSel.focus();log((mode==='search'?streams[idx]:favorites[idx]).title.substring(0,40));}
     }else if(k==='Enter'){
         e.preventDefault();
         if(mode==='favorites'&&favorites[idx])playFav(idx);

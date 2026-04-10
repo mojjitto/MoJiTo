@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 from flask import Flask, request, jsonify, send_file
 import os
+import threading
 
 app = Flask(__name__)
 
@@ -24,7 +25,7 @@ def api_search():
         import urllib.parse
         scraper = cloudscraper.create_scraper()
         
-        resp = scraper.get(f'https://searchtv.net/search/?query={urllib.parse.quote(q)}', timeout=12)
+        resp = scraper.get(f'https://searchtv.net/search/?query={urllib.parse.quote(q)}', timeout=10)
         
         if resp.status_code != 200:
             return jsonify({'streams': []})
@@ -37,9 +38,10 @@ def api_search():
         
         while downloaded < limit and i < len(items):
             try:
-                stream_resp = scraper.get(f'https://searchtv.net/stream/uuid/{items[i]}/', timeout=4)
+                stream_resp = scraper.get(f'https://searchtv.net/stream/uuid/{items[i]}/', timeout=2)
                 if 'EXTM3U' in stream_resp.text:
                     title = str(items[i])
+                    url = ''
                     for line in stream_resp.text.split('\n'):
                         if line.startswith('#EXTINF:'):
                             parts = line.split(',')
@@ -48,20 +50,24 @@ def api_search():
                                 import re
                                 title = re.sub(r'\s*\(\d+\)\s*$', '', raw).strip()
                         elif line.startswith('http'):
-                            streams.append({'title': title, 'url': line.strip()})
-                            downloaded += 1
+                            url = line.strip()
                             break
+                    if url:
+                        streams.append({'title': title, 'url': url})
+                        downloaded += 1
             except:
                 pass
             i += 1
         
+        streams.sort(key=lambda x: 1 if '1080' in x['title'].lower() or 'hd' in x['title'].lower() else 2)
+        
         has_more = i < len(items)
         
-        return jsonify({'streams': streams, 'hasMore': has_more, 'showing': len(streams)})
+        return jsonify({'streams': streams, 'hasMore': has_more})
         
     except Exception as e:
         return jsonify({'streams': [], 'error': str(e)[:50]})
 
 if __name__ == '__main__':
-    print('SŌF TV - Exact 20 per page')
+    print('SŌF TV - Fast HD Priority')
     app.run(host='0.0.0.0', port=8080, threaded=True, debug=False)
